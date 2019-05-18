@@ -1,0 +1,6 @@
+.idea/
+__pycache__
+easy/
+model/
+*.zip
+train_set.pk
