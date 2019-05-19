@@ -1,29 +1,32 @@
 import csv
+import argparse
 import os
+import sys
 
 import numpy
 import torch
 import torch.cuda
 from PIL import Image
 from torch.autograd import Variable
-from torchvision import transforms
 
-from train import Net
-
-net = Net()
-model_dir = "model"
-checkpoint = torch.load(f"{model_dir}/model-74-91.01.pth")
-net.load_state_dict(checkpoint['state_dict'])
+from net.load_net import load_net
+from load import test_transformations
 
 
-def predict_image(image_path):
-    print("Prediction in progress")
+def load_trained_net(model_path):
+    print("Begin to load pre-trained net ... ", end="")
+    net = load_net("simplenet")
+    checkpoint = torch.load(model_path)
+    net.load_state_dict(checkpoint['state_dict'])
+    print("Finished.")
+    return net
+
+
+def predict_image(net, image_path: str):
     image = numpy.asarray(Image.open(image_path).resize((32, 32)))
 
     # Define transformations for the image
-    transformation = transforms.Compose([
-        transforms.ToTensor()
-    ])
+    transformation = test_transformations
 
     # 预处理图像
     image_tensor = transformation(image)
@@ -40,18 +43,25 @@ def predict_image(image_path):
     # 预测图像的类
     output = net(input)
     index = output.data.numpy().argmax()
-    return index
+    return index + 1
 
 
-def predict():
-    # 给出要预测图片文件位置，返回预测CategoryId（index）
-    index = predict_image("easy/data/1ce6baf8-25c1-4328-a268-1129b98c600c.jpg")
-    print(index)
+def predict(net, outfile_path: str):
+    file_test = open(outfile_path, 'w', newline='')
+    csv_writer = csv.writer(file_test)
+    csv_writer.writerow(["ImageName", "CategoryId"])
+    for i, filename in enumerate(os.listdir("easy/test")):
+        print("Prediction in progress:", i)
+        csv_writer.writerow((filename, predict_image(net=net, image_path=f"easy/test/{filename}")))
 
 
 if __name__ == '__main__':
-    file_test = open('result.csv', 'w', newline='')
-    csv_writer = csv.writer(file_test)
-    csv_writer.writerow(["ImageName", "CategoryId"])
-    for filename in os.listdir("easy/test"):
-        csv_writer.writerow((filename, predict_image(f"easy/test/{filename}")))
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-m", "--model_path", help="set the pretrained model path")
+    parser.add_argument("-o", "--outfile_path", default="result.csv", help="set the output file path, default to result.csv")
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s 1.0')
+    args = parser.parse_args()
+    predict(net=load_trained_net(args.model_path), outfile_path=args.outfile_path)
+
+
+
