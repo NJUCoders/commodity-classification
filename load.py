@@ -11,9 +11,6 @@ from torchvision import transforms, utils
 # ])
 
 train_transformations = transforms.Compose([
-    transforms.ToPILImage(),
-    transforms.Resize(32),
-    transforms.RandomCrop(24),
     transforms.ToTensor()
 ])
 
@@ -30,7 +27,7 @@ class PickleDataSet(Dataset):
         img, label = self.imgs[index]
         if self.transform is not None:
             img = self.transform(img)
-        label = int(label)
+        label = int(label) - 1
         return img, label
 
     def __len__(self):

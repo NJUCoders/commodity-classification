@@ -8,9 +8,14 @@ import torch
 import torch.cuda
 from PIL import Image
 from torch.autograd import Variable
+from torchvision.transforms import transforms
 
 from net.load_net import load_net
-from load import test_transformations
+
+
+test_transformations = transforms.Compose([
+    transforms.ToTensor()
+])
 
 
 def load_trained_net(model_path):
