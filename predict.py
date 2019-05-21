@@ -20,9 +20,10 @@ test_transformations = transforms.Compose([
 
 def load_trained_net(model_path):
     print("Begin to load pre-trained net ... ", end="")
-    net = load_net("simplenet")
+    net = load_net("resnet")
     checkpoint = torch.load(model_path)
     net.load_state_dict(checkpoint['state_dict'])
+    net.eval()
     print("Finished.")
     return net
 
@@ -48,7 +49,7 @@ def predict_image(net, image_path: str):
     # 预测图像的类
     output = net(input)
     index = output.data.numpy().argmax()
-    return index + 1
+    return index + 1  # [0, C-1] -> [1, C]
 
 
 def predict(net, outfile_path: str):
@@ -63,7 +64,7 @@ def predict(net, outfile_path: str):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-m", "--model_path", help="set the pretrained model path")
-    parser.add_argument("-o", "--outfile_path", default="result.csv", help="set the output file path, default to result.csv")
+    parser.add_argument("-o", "--outfile_path", default="result.csv", help="set the output file path (default: result.csv)")
     parser.add_argument('-v', '--version', action='version', version='%(prog)s 1.0')
     args = parser.parse_args()
     predict(net=load_trained_net(args.model_path), outfile_path=args.outfile_path)

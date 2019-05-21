@@ -27,7 +27,7 @@ class PickleDataSet(Dataset):
         img, label = self.imgs[index]
         if self.transform is not None:
             img = self.transform(img)
-        label = int(label) - 1
+        label = int(label) - 1  # [1, C] -> [0, C-1]
         return img, label
 
     def __len__(self):

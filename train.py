@@ -1,17 +1,17 @@
+import argparse
 import os
 
 import torch.cuda
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 
-import load
+import load_dataset
 from net.load_net import load_net
 
 
-def train(model_dir="model", epoch_size=100, batch_size=200, train_continue=False, train_continue_path=None):
+def train(model_out_dir, epoch_size, batch_size, train_continue):
     net = load_net("resnet")
     net.cuda()
     criterion = nn.CrossEntropyLoss()
@@ -20,7 +20,7 @@ def train(model_dir="model", epoch_size=100, batch_size=200, train_continue=Fals
     init_epoch = 0
 
     if train_continue:
-        checkpoint = torch.load(train_continue_path)
+        checkpoint = torch.load(train_continue)
         init_epoch = checkpoint["epoch"] - 1
         net.load_state_dict(checkpoint['state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer'])
@@ -28,7 +28,7 @@ def train(model_dir="model", epoch_size=100, batch_size=200, train_continue=Fals
     print("CUDA is available?", torch.cuda.is_available())
 
     print("Start to load train data ...", end=" ")
-    train_data = load.load_from_pickle()  # 读取数据集
+    train_data = load_dataset.load_from_pickle()  # 读取数据集
     trainset, testset = torch.utils.data.random_split(train_data, [len(train_data) - int(len(train_data) / 10), int(
         len(train_data) / 10)])  # 将数据集随机划分为训练集与测试集，比例：[9:1]
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)  # 读取训练集
@@ -74,9 +74,9 @@ def train(model_dir="model", epoch_size=100, batch_size=200, train_continue=Fals
         scheduler.step(test_acc)
         print('Accuracy of the network on the 10000 test images: %d %%' % test_acc)
 
-        if not os.path.exists(model_dir):
-            os.mkdir(model_dir)
-        file_path = f"{model_dir}/model-{epoch + 1}-{test_acc}.pth"
+        if not os.path.exists(model_out_dir):
+            os.mkdir(model_out_dir)
+        file_path = f"{model_out_dir}/model-{epoch + 1}-{test_acc}.pth"
         state = {
             'epoch': epoch + 1,
             'state_dict': net.state_dict(),
@@ -87,5 +87,13 @@ def train(model_dir="model", epoch_size=100, batch_size=200, train_continue=Fals
 
 
 if __name__ == '__main__':
-    model_dir = "model"
-    train(model_dir=model_dir, train_continue=False, train_continue_path=f"{model_dir}/model-127-93.25.pth")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-e", "--epoch_size", default=100, help="set the epoch size (default: 100)")
+    parser.add_argument("-b", "--batch_size", default=200, help="set the batch size (default: 200)")
+    parser.add_argument("-t", "--train_continue", help="set the pretrained model path to continue train (optional)")
+    parser.add_argument("-mo", "--model_out_dir", default="model",
+                        help="set the model out path, (default: model)")
+    parser.add_argument('-v', '--version', action='version', version='%(prog)s 1.0')
+    args = parser.parse_args()
+    train(model_out_dir=args.model_out_dir, epoch_size=args.epoch_size, batch_size=args.batch_size,
+          train_continue=args.train_continue)
