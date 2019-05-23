@@ -13,6 +13,9 @@ from torchvision.transforms import transforms
 from net.load_net import load_net
 
 
+image_size = (96, 96)
+
+
 test_transformations = transforms.Compose([
     transforms.ToTensor()
 ])
@@ -29,7 +32,10 @@ def load_trained_net(model_path):
 
 
 def predict_image(net, image_path: str):
-    image = numpy.asarray(Image.open(image_path).resize((32, 32)))
+    im = Image.open(image_path)  # 原始图像
+    w = max(im.size)  # 正方形的宽度
+    im = im.crop((0, 0, w, w)).resize(image_size)  # 补成正方形再压缩
+    image = numpy.asarray(im)
 
     # Define transformations for the image
     transformation = test_transformations
