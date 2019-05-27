@@ -1,24 +1,3 @@
-# 读取pytorch自带的resnet-101模型,因为使用了预训练模型，所以会自动下载模型参数
-# model=models.resnet101(pretrained=True)
-#
-# # 对于模型的每个权重，使其不进行反向传播，即固定参数
-# for param in model.parameters():
-#     param.requires_grad = False
-# # 但是参数全部固定了，也没法进行学习，所以我们不固定最后一层，即全连接层fc
-# for param in model.fc.parameters():
-#     param.requires_grad = True
-#
-# # 假设要分类数目是200
-# class_num = 200
-#
-# # 获取fc层的输入通道数
-# channel_in = model.fc.in_features
-#
-# # 然后把resnet-101的fc层替换成200类别的fc层
-# model.fc = nn.Linear(channel_in, class_num)
-#
-# model.conv1 = nn.Conv2d(3, 64, kernel_size=7, stride=2, padding=3, bias=False)
-
 from torch import nn
 from torch.nn import functional as F
 
