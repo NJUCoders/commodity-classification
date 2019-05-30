@@ -22,7 +22,7 @@ test_transformations = transforms.Compose([
 
 def load_trained_net(model_path):
     print("Begin to load pre-trained net ... ", end="")
-    net = load_net("resnet")
+    net = load_net("resnet152")
     checkpoint = torch.load(model_path, map_location=lambda storage, loc: storage)
     net.load_state_dict(checkpoint['state_dict'])
     net.eval()

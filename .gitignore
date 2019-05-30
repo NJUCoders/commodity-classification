@@ -2,5 +2,6 @@
 __pycache__
 easy/
 model/
+submit/
 *.zip
 train_set.pk
